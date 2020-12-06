@@ -13,8 +13,8 @@ f.close()
 
 parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
 
-parser.add_argument('--customer', '-c',  type=str, help="The customer name", required=True)
-parser.add_argument('--password', '-p',  type=str, help="The customer password", required=True)
+parser.add_argument('--user', '-u',  type=str, help="The user name", required=True)
+parser.add_argument('--password', '-p',  type=str, help="The user password", required=True)
 parser.add_argument('--ping',   help = "System Ping")
 parser.add_argument('--version', '-v', type=str, help="Get Artifactory version")
 parser.add_argument('--createuser', '-cu',  type=str, help="Enter a new user name")
@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 
 # Token
-url = f"https://{args.customer}.jfrog.io/artifactory/api/security/apiKey"
+url = f"https://{args.user}.jfrog.io/artifactory/api/security/apiKey"
 headers = CaseInsensitiveDict()
 headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
 resp = requests.get(url, headers=headers)
@@ -33,7 +33,7 @@ print(resp.status_code)
 
 # make an health check - ping
 if args.ping == 't':
-    url2 = f"https://{args.customer}.jfrog.io/artifactory/api/system/ping"
+    url2 = f"https://{args.user}.jfrog.io/artifactory/api/system/ping"
     headers = CaseInsensitiveDict()
     resp2 = requests.get(url2, headers=headers)
     if(resp2.status_code == 200):
@@ -44,7 +44,7 @@ if args.ping == 't':
 
 # return the artifactory version if flag is true
 if args.version == 'y':
-    url3 = f"https://{args.customer}.jfrog.io/artifactory/api/system/version"
+    url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
     headers = CaseInsensitiveDict()
     headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
     resp3 = requests.get(url3, headers=headers)
@@ -61,7 +61,7 @@ if args.createuser != None:
     json_dump = json.dumps(data_set)
     print(json_dump)
 
-    url4 = f"https://amitmichaely.jfrog.io/artifactory/api/security/users/{args.createuser}"
+    url4 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.createuser}"
     headers = CaseInsensitiveDict()
     headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
     headers["Content-Type"] = "application/json"
@@ -74,7 +74,7 @@ if args.createuser != None:
 
 # Delete a user
 if args.deleteuser != None:
-    url5 = f"https://amitmichaely.jfrog.io/artifactory/api/security/users/{args.deleteuser}"
+    url5 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.deleteuser}"
     headers = CaseInsensitiveDict()
     headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
     resp5 = requests.delete(url5, headers=headers)
@@ -85,7 +85,7 @@ if args.deleteuser != None:
 
 # Get Storage Summary Info
 if args.storageinfo != None:
-    url6 = "https://amitmichaely.jfrog.io/artifactory/api/storageinfo"
+    url6 = f"https://{args.user}.jfrog.io/artifactory/api/storageinfo"
     headers = CaseInsensitiveDict()
     headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
     resp6 = requests.get(url6, headers=headers)
