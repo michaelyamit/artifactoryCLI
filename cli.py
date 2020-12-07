@@ -7,8 +7,8 @@ import json
 import os
 
 f = open(".gitignore", "r")
-X_JFrog_Art_Api = f.read()
-print(X_JFrog_Art_Api)
+X_JFrog_Token = f.read()
+print(X_JFrog_Token)
 f.close()
 
 parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
@@ -16,7 +16,7 @@ parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
 parser.add_argument('--user', '-u',  type=str, help="The user name", required=True)
 parser.add_argument('--password', '-p',  type=str, help="The user password", required=True)
 parser.add_argument('--ping',   help = "System Ping")
-parser.add_argument('--version', '-v', type=str, help="Get Artifactory version")
+parser.add_argument('version',  help="Get Artifactory version")
 parser.add_argument('--createuser', '-cu',  type=str, help="Enter a new user name")
 parser.add_argument('--deleteuser', '-du',  type=str, help="Enter a user name to delete")
 parser.add_argument('--storageinfo', '-si',  type=str, help="Get Storage Summary Info")
@@ -27,7 +27,7 @@ args = parser.parse_args()
 # Token
 url = f"https://{args.user}.jfrog.io/artifactory/api/security/apiKey"
 headers = CaseInsensitiveDict()
-headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
+headers["Authorization"] = X_JFrog_Token
 resp = requests.get(url, headers=headers)
 print(resp.status_code)
 
@@ -43,13 +43,13 @@ if args.ping == 't':
 
 
 # return the artifactory version if flag is true
-if args.version == 'y':
-    url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
-    headers = CaseInsensitiveDict()
-    headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
-    resp3 = requests.get(url3, headers=headers)
-    #print(resp3.status_code)
-    print(resp3.json()["version"])
+#if args.version == 'y':
+url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
+headers = CaseInsensitiveDict()
+headers["Authorization"] = X_JFrog_Token
+resp3 = requests.get(url3, headers=headers)
+#print(resp3.status_code)
+print(resp3.json()["version"])
 
 
 # create a new user
@@ -63,7 +63,7 @@ if args.createuser != None:
 
     url4 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.createuser}"
     headers = CaseInsensitiveDict()
-    headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
+    headers["Authorization"] = X_JFrog_Token
     headers["Content-Type"] = "application/json"
 
     resp4 = requests.put(url4, headers=headers, data=json_dump)
@@ -76,7 +76,7 @@ if args.createuser != None:
 if args.deleteuser != None:
     url5 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.deleteuser}"
     headers = CaseInsensitiveDict()
-    headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
+    headers["Authorization"] = X_JFrog_Token
     resp5 = requests.delete(url5, headers=headers)
 
     print(resp5.status_code)
@@ -87,19 +87,8 @@ if args.deleteuser != None:
 if args.storageinfo != None:
     url6 = f"https://{args.user}.jfrog.io/artifactory/api/storageinfo"
     headers = CaseInsensitiveDict()
-    headers["X-JFrog-Art-Api"] = X_JFrog_Art_Api
+    headers["Authorization"] = X_JFrog_Token
     resp6 = requests.get(url6, headers=headers)
     print(resp.status_code)
     print(resp6.json())
-
-
-
-
-
-
-
-
-
-
-
 
