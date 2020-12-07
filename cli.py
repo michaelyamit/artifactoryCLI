@@ -43,13 +43,13 @@ if args.ping == 't':
 
 
 # return the artifactory version if flag is true
-#if args.version == 'y':
-url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
-headers = CaseInsensitiveDict()
-headers["Authorization"] = X_JFrog_Token
-resp3 = requests.get(url3, headers=headers)
-#print(resp3.status_code)
-print(resp3.json()["version"])
+if args.version == 'y':
+    url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
+    headers = CaseInsensitiveDict()
+    headers["Authorization"] = X_JFrog_Token
+    resp3 = requests.get(url3, headers=headers)
+    #print(resp3.status_code)
+    print(resp3.json()["version"])
 
 
 # create a new user
