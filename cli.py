@@ -14,7 +14,7 @@ f.close() """
 
 
 def get_admin_token():
-    f = open("keys.py", "r")
+    f = open("keys.txt", "r")
     lines = f.readlines()
     admin_token = lines[0].strip()
     f.close()
