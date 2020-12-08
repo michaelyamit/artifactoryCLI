@@ -24,7 +24,35 @@ parser.add_argument('--createuser', '-cu',  type=str, help="Enter a new user nam
 parser.add_argument('--deleteuser', '-du',  type=str, help="Enter a user name to delete")
 parser.add_argument('--storageinfo', '-si',  type=str, help="Get Storage Summary Info")
 
+
 args = parser.parse_args()
+
+def generate_token(username, password):
+    url = f"https://{args.user}.jfrog.io/artifactory/api/security/token"
+    headers = CaseInsensitiveDict()
+    headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
+    headers["Content-Type"] = "application/x-www-form-urlencoded"
+    data = f"username={username}&expires_in=0&scope=member-of-groups:\"readers\""
+    resp = requests.post(url, headers=headers, data=data)
+    temp_token = (resp.json()["access_token"])
+    return temp_token
+
+def get_token_id():
+    url = f"https://{args.user}.jfrog.io/artifactory/api/security/token"
+    headers = CaseInsensitiveDict()
+    headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
+    resp = requests.get(url, headers=headers)
+    temp_token = (resp.json()["tokens"][0]["token_id"])
+    print(temp_token)
+
+def revoke_token(username, token_id):
+    url = f"https://{args.user}.jfrog.io/artifactory/api/security/token/revoke"
+    headers = CaseInsensitiveDict()
+    headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
+    headers["Content-Type"] = "application/x-www-form-urlencoded"
+    data = f"username={username}&expires_in=0&scope=member-of-groups:\"readers\"&token_id={token_id}"
+    resp = requests.post(url, headers=headers, data=data)
+
 
 def validate_user_details():
     f = open(".gitignore", "r")
@@ -51,22 +79,48 @@ def check_if_user_exist(user):
     else:
         return False
 
+def api_request(api, token, state, content_type):
+    url = f"https://{args.user}.jfrog.io/artifactory/{api}"
+    headers = CaseInsensitiveDict()
+    if (token == 'token'):
+        headers["Authorization"] = X_JFrog_Token
+
+    if (content_type == 'content_type'):
+        headers["Content-Type"] = "application/json"
+
+    if state == "GET":
+        response = requests.get(url, headers=headers)
+    elif state == "POST":
+        response = requests.post(url, headers=headers)
+    elif state == "PUT":
+        response = requests.put(url, headers=headers, data=json_dump)
+    elif state == 'DELETE':
+        response = requests.delete(url, headers=headers)
+    else:
+        print("api=[%s] is not supported" % api)
+        return False
+
+    resp = requests.get(url, headers=headers)
+    return resp
+
 
 
 # Token
 if args.user != None and validate_user_details():
-    url = f"https://{args.user}.jfrog.io/artifactory/api/security/apiKey"
+   """  url = f"https://{args.user}.jfrog.io/artifactory/api/security/apiKey"
     headers = CaseInsensitiveDict()
     headers["Authorization"] = X_JFrog_Token
     resp = requests.get(url, headers=headers)
-    print(resp.status_code)
+    print(resp.status_code) """
+print(api_request('api/security/apiKey', 'token', 'GET', None).status_code)
 
 # make an health check - ping
 if args.ping == 't' and validate_user_details():
-    url2 = f"https://{args.user}.jfrog.io/artifactory/api/system/ping"
+    """ url2 = f"https://{args.user}.jfrog.io/artifactory/api/system/ping"
     headers = CaseInsensitiveDict()
-    resp2 = requests.get(url2, headers=headers)
-    if(resp2.status_code == 200):
+    resp2 = requests.get(url2, headers=headers) """
+    resp2 = (api_request('api/system/ping', None, 'GET', None).status_code)
+    if(resp2 == 200):
         print ("OK")
     else:
         print ("BAD")
@@ -74,11 +128,12 @@ if args.ping == 't' and validate_user_details():
 
 # return the artifactory version if flag is true
 if args.version == 'y' and validate_user_details():
-    url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
+    """ url3 = f"https://{args.user}.jfrog.io/artifactory/api/system/version"
     headers = CaseInsensitiveDict()
     headers["Authorization"] = X_JFrog_Token
     resp3 = requests.get(url3, headers=headers)
-    #print(resp3.status_code)
+    #print(resp3.status_code) """
+    resp3 = (api_request('api/system/version', 'token', 'GET', None))
     print(resp3.json()["version"])
 
 
@@ -91,7 +146,7 @@ if args.createuser != None and validate_user_details():
     print(json_dump)
 
     if not check_if_user_exist(args.createuser):
-        url4 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.createuser}"
+        """ url4 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.createuser}"
         headers = CaseInsensitiveDict()
         headers["Authorization"] = X_JFrog_Token
         headers["Content-Type"] = "application/json"
@@ -99,30 +154,39 @@ if args.createuser != None and validate_user_details():
         resp4 = requests.put(url4, headers=headers, data=json_dump)
         print(resp4.status_code)
 
-        print(url4)
+        print(url4) """
+
+        resp4 = (api_request(f'api/security/users/{args.createuser}', 'token', 'PUT', 'content_type').status_code)
+        print(f"User {args.createuser} created. ")
+
     else:
         print ("The user already exist. doing nothing.")
 
 # Delete a user
 if args.deleteuser != None and validate_user_details():
     if check_if_user_exist(args.deleteuser):
-        url5 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.deleteuser}"
+        """ url5 = f"https://{args.user}.jfrog.io/artifactory/api/security/users/{args.deleteuser}"
         headers = CaseInsensitiveDict()
         headers["Authorization"] = X_JFrog_Token
         resp5 = requests.delete(url5, headers=headers)
 
         print(resp5.status_code)
-        print(f"{args.deleteuser} removed successfully")
+        print(f"{args.deleteuser} removed successfully") """
+
+        resp5 = (api_request(f'api/security/users/{args.deleteuser}', 'token', 'DELETE', None).status_code)
+        print(f"User {args.deleteuser} removed. ")
     else:
         print ("The user does not exist. Doing nothing.")
 
 
 # Get Storage Summary Info
 if args.storageinfo != None and validate_user_details():
-    url6 = f"https://{args.user}.jfrog.io/artifactory/api/storageinfo"
+    """ url6 = f"https://{args.user}.jfrog.io/artifactory/api/storageinfo"
     headers = CaseInsensitiveDict()
     headers["Authorization"] = X_JFrog_Token
     resp6 = requests.get(url6, headers=headers)
     print(resp.status_code)
-    print(resp6.json())
+    print(resp6.json()) """
 
+    resp6 = (api_request('api/storageinfo', 'token', 'GET', None))
+    print(resp6.json())
