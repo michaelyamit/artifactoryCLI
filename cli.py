@@ -14,9 +14,6 @@ def get_admin_token():
     lines = f_admin.readlines()
     admin_token = lines[0].strip()
     f_admin.close()
-    print("#####################admin token is")
-    print(admin_token)
-    print("#####################")
     return admin_token
 
 
@@ -25,9 +22,6 @@ def get_temp_token():
     lines = f_temp.readlines()
     temp_token = lines[0].strip()
     f_temp.close()
-    print("#####################temp token is")
-    print(temp_token)
-    print("#####################")
     return temp_token
 
 
@@ -39,7 +33,7 @@ def generate_token(username):
     data = f"username={username}&expires_in=0&scope=member-of-groups:\"readers\""
     resp = requests.post(url, headers=headers, data=data)
     temp_token = (resp.json()["access_token"])
-    print(temp_token)
+    print("Token generated.")
     return temp_token
 
 
@@ -62,17 +56,6 @@ def revoke_token(token_id):
     print("Token has been deleted!")
 
 
-def validate_user_details(user):
-    url = f"https://{args.server}.jfrog.io/artifactory/api/security/users/{user}"
-    headers = CaseInsensitiveDict()
-    headers["Authorization"] = 'Bearer ' + X_JFrog_Token
-    resp = requests.get(url, headers=headers)
-    if resp.status_code == 200:
-        print("Details correct... ")
-    else:
-        print("Details incorrect... ")
-
-
 def validate_user_password(user, password):
     url = "https://amitmichaely.jfrog.io/artifactory/api/system/ping"
     headers = CaseInsensitiveDict()
@@ -80,8 +63,10 @@ def validate_user_password(user, password):
     resp = requests.get(url, headers=headers)
 
     if resp.status_code == 200:
+        print("Password correct... ")
         return True
     else:
+        print("Password incorrect... ")
         return False
 
 
@@ -90,12 +75,11 @@ def check_if_user_exist(user):
     headers = CaseInsensitiveDict()
     headers["Authorization"] = 'Bearer ' + X_JFrog_Token
     resp = requests.get(url, headers=headers)
-    print(url)
-    print("the resp is")
-    print(resp)
     if resp.status_code == 200:
+        print("User exists...")
         return True
     else:
+        print("User doesn't exists...")
         return False
 
 
@@ -110,21 +94,17 @@ def check_admin_or_temp_user_for_token():
 def api_request(api, token, state, content_type):
     url = f"https://{args.server}.jfrog.io/artifactory/{api}"
     headers = CaseInsensitiveDict()
-    print(state)
     if token == 'token':
         headers["Authorization"] = 'Bearer ' + check_admin_or_temp_user_for_token()
     if content_type == 'content_type':
         headers["Content-Type"] = "application/json"
+
     if state == "GET":
         response = requests.get(url, headers=headers)
     elif state == "POST":
         response = requests.post(url, headers=headers)
     elif state == "PUT":
         response = requests.put(url, headers=headers, data=json_dump)
-        print(json_dump)
-        print(url)
-        print(headers)
-        print(response)
     elif state == 'DELETE':
         response = requests.delete(url, headers=headers)
     else:
@@ -177,7 +157,7 @@ if args.createuser is not None and check_if_user_exist(args.user) and validate_u
     data_set = {}
     data_set['email'] = input("Enter an email ").lower().strip()
     data_set['password'] = input("Enter a password ").strip()
-    data_set['admin'] = "false"
+    #data_set['admin'] = "false"
     json_dump = json.dumps(data_set)
     print(json_dump)
     if not check_if_user_exist(args.createuser):
