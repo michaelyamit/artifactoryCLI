@@ -14,20 +14,31 @@ f.close() """
 
 
 def get_admin_token():
-    f = open("keys.txt", "r")
-    lines = f.readlines()
+    f_admin = open("keys.txt", "r")
+    lines = f_admin.readlines()
     admin_token = lines[0].strip()
-    f.close()
-    print("#####################")
+    f_admin.close()
+    print("#####################admin token is")
     print(admin_token)
     print("#####################")
     return admin_token
 
 
+def get_temp_token():
+    f_temp = open("tempToken.txt", "r")
+    lines = f_temp.readlines()
+    temp_token = lines[0].strip()
+    f_temp.close()
+    print("#####################temp token is")
+    print(temp_token)
+    print("#####################")
+    return temp_token
+
+
 def generate_token(username):
     url = f"https://{args.server}.jfrog.io/artifactory/api/security/token"
     headers = CaseInsensitiveDict()
-    headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
+    headers["Authorization"] = "Basic YWRtaW46UGFzc3dvcmQ="
     headers["Content-Type"] = "application/x-www-form-urlencoded"
     data = f"username={username}&expires_in=0&scope=member-of-groups:\"readers\""
     resp = requests.post(url, headers=headers, data=data)
@@ -80,6 +91,15 @@ def check_if_user_exist(user):
         return False
 
 
+def check_admin_or_temp_user_for_token():
+    if args.user == 'admin':
+        main_token = get_admin_token()
+    else:
+        main_token = get_temp_token()
+
+    return main_token
+
+
 def api_request(api, token, state, content_type):
     url = f"https://{args.server}.jfrog.io/artifactory/{api}"
     headers = CaseInsensitiveDict()
@@ -87,7 +107,7 @@ def api_request(api, token, state, content_type):
     print(state)
 
     if token == 'token':
-        headers["Authorization"] = 'Bearer ' + X_JFrog_Token
+        headers["Authorization"] = 'Bearer ' + check_admin_or_temp_user_for_token()
 
     if content_type == 'content_type':
         headers["Content-Type"] = "application/json"
@@ -112,6 +132,9 @@ def api_request(api, token, state, content_type):
     return response
 
 
+
+
+
 parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
 
 parser.add_argument('--server', '-s', type=str, help="Server name", default='amitmichaely')
@@ -127,6 +150,7 @@ parser.add_argument('--storageinfo', '-si',  type=str, help="Get Storage Summary
 args = parser.parse_args()
 
 X_JFrog_Token = get_admin_token()
+temp_JFrog_Token = ''
 #X_JFrog_Token = generate_token(args.server, args.password)
 
 
@@ -155,17 +179,23 @@ if args.version == 'y' and check_if_user_exist(args.user):
 
 
 # create a new user
-if args.createuser is not None: #and validate_user_details():
+if args.createuser is not None and check_if_user_exist(args.user):
     data_set = {}
     data_set['email'] = input("Enter an email ").lower().strip()
     data_set['password'] = input("Enter a password ").strip()
+    data_set['admin'] = "false"
     json_dump = json.dumps(data_set)
     print(json_dump)
 
     if not check_if_user_exist(args.createuser):
         #admin_token = generate_token(args.user)
         resp4 = api_request(f'api/security/users/{args.createuser}', 'token', 'PUT', 'content_type').status_code
-
+        temp_JFrog_Token = generate_token(args.createuser)
+        f = open("tempToken.txt", "a")
+        f.seek(0)
+        f.truncate()
+        f.write(temp_JFrog_Token)
+        f.close
         if resp4 == 200:
             print(f"User {args.createuser} created. ")
         elif resp4 == 401:
@@ -174,7 +204,7 @@ if args.createuser is not None: #and validate_user_details():
         print("The user already exists. doing nothing.")
 
 # Delete a user
-if args.deleteuser is not None: #and validate_user_details():
+if args.deleteuser is not None and check_if_user_exist(args.user):
     if check_if_user_exist(args.deleteuser):
         resp5 = api_request(f'api/security/users/{args.deleteuser}', 'token', 'DELETE', None).status_code
         print(f"User {args.deleteuser} removed. ")
@@ -186,4 +216,9 @@ if args.deleteuser is not None: #and validate_user_details():
 if args.storageinfo is not None and check_if_user_exist(args.user):
     resp6 = (api_request('api/storageinfo', 'token', 'GET', None))
     print(resp6.json())
+
+
+
+
+
 
