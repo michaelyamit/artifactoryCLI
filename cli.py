@@ -140,18 +140,16 @@ parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
 parser.add_argument('--server', '-s', type=str, help="Server name", default='amitmichaely')
 parser.add_argument('--user', '-u',  type=str, help="The user name", required=True)
 parser.add_argument('--password', '-p',  type=str, help="The user password", required=True)
-parser.add_argument('--ping',   help = "System Ping")
-parser.add_argument('--version',  help = "Get Artifactory version")
+parser.add_argument('--ping', action='store_true', help="System Ping")
+parser.add_argument('--version', action='store_true', help="Get Artifactory version")
 parser.add_argument('--createuser', '-cu',  type=str, help="Enter a new user name")
 parser.add_argument('--deleteuser', '-du',  type=str, help="Enter a user name to delete")
-parser.add_argument('--storageinfo', '-si',  type=str, help="Get Storage Summary Info")
+parser.add_argument('--storageinfo', '-si', action='store_true', help="Get Storage Summary Info")
 
 
 args = parser.parse_args()
 
-X_JFrog_Token = get_admin_token()
-temp_JFrog_Token = ''
-admin_token_flag = False
+
 #X_JFrog_Token = generate_token(args.server, args.password)
 
 
@@ -165,16 +163,20 @@ admin_token_flag = False
 
 
 # manage the admin token, every run make a new one and revoke in the end
-file = open("keys.py", "r+")
+file = open("keys.txt", "r+")
 file_len = file.read()
-if os.stat("keys.py").st_size == 0:  # There isn't a admin token
+if os.stat("keys.txt").st_size == 0:  # There isn't a admin token
     file.write(generate_token('admin'))
     admin_token_flag = True
 
 file.close()
 
+X_JFrog_Token = get_admin_token()
+temp_JFrog_Token = ''
+admin_token_flag = False
+
 # make an health check - ping
-if args.ping == 't' and check_if_user_exist(args.user):
+if args.ping and check_if_user_exist(args.user):
     resp2 = api_request('api/system/ping', None, 'GET', None).status_code
     if resp2 == 200:
         print("OK")
@@ -183,7 +185,7 @@ if args.ping == 't' and check_if_user_exist(args.user):
 
 
 # return the artifactory version if flag is true
-if args.version == 'y' and check_if_user_exist(args.user):
+if args.version and check_if_user_exist(args.user):
     resp3 = (api_request('api/system/version', 'token', 'GET', None))
     print(resp3.json()["version"])
 
@@ -223,7 +225,7 @@ if args.deleteuser is not None and check_if_user_exist(args.user):
 
 
 # Get Storage Summary Info
-if args.storageinfo is not None and check_if_user_exist(args.user):
+if args.storageinfo and check_if_user_exist(args.user):
     resp6 = (api_request('api/storageinfo', 'token', 'GET', None))
     print(resp6.json())
 
