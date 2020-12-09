@@ -53,15 +53,15 @@ def get_token_id():
     headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
     resp = requests.get(url, headers=headers)
     temp_token = (resp.json()["tokens"][0]["token_id"])
-    print(temp_token)
+    return temp_token
 
 
-def revoke_token(token):
+def revoke_token(token_id):
     url = f"https://{args.server}.jfrog.io/artifactory/api/security/token/revoke"
     headers = CaseInsensitiveDict()
     headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
     headers["Content-Type"] = "application/x-www-form-urlencoded"
-    data = f"username={args.server}&expires_in=0&scope=member-of-groups:\"readers\"&token={token}"
+    data = f"username={args.server}&expires_in=0&scope=member-of-groups:\"readers\"&token_id={token_id}"
     resp = requests.post(url, headers=headers, data=data)
     print("Token has been deleted!")
 
@@ -151,6 +151,7 @@ args = parser.parse_args()
 
 X_JFrog_Token = get_admin_token()
 temp_JFrog_Token = ''
+admin_token_flag = False
 #X_JFrog_Token = generate_token(args.server, args.password)
 
 
@@ -162,6 +163,15 @@ temp_JFrog_Token = ''
     #print(api_request('api/security/apiKey', 'token', 'GET', None).status_code)
     #revoke_token(X_JFrog_Token)
 
+
+# manage the admin token, every run make a new one and revoke in the end
+file = open("keys.py", "r+")
+file_len = file.read()
+if os.stat("keys.py").st_size == 0:  # There isn't a admin token
+    file.write(generate_token('admin'))
+    admin_token_flag = True
+
+file.close()
 
 # make an health check - ping
 if args.ping == 't' and check_if_user_exist(args.user):
@@ -217,8 +227,10 @@ if args.storageinfo is not None and check_if_user_exist(args.user):
     resp6 = (api_request('api/storageinfo', 'token', 'GET', None))
     print(resp6.json())
 
-
-
+# delete the admin token in the end
+if admin_token_flag:
+    token_to_revoke = get_token_id()
+    revoke_token(token_to_revoke)
 
 
 
