@@ -1,4 +1,5 @@
 #!/Users/amitm/sample/venv-pythonProject/bin/python3.7
+from base64 import b64encode
 
 import requests
 from argparse import ArgumentParser
@@ -6,11 +7,6 @@ from requests.structures import CaseInsensitiveDict
 import json
 import os
 import sys
-
-""" f = open(".gitignore", "r")
-lines = f.readlines()
-X_JFrog_Token = lines[0].strip()
-f.close() """
 
 
 def get_admin_token():
@@ -77,6 +73,18 @@ def validate_user_details(user):
         print("Details incorrect... ")
 
 
+def validate_user_password(user, password):
+    url = "https://amitmichaely.jfrog.io/artifactory/api/system/ping"
+    headers = CaseInsensitiveDict()
+    headers["Authorization"] = "Basic {}".format(b64encode(bytes(f"{user}:{password}", "utf-8")).decode("ascii"))
+    resp = requests.get(url, headers=headers)
+
+    if resp.status_code == 200:
+        return True
+    else:
+        return False
+
+
 def check_if_user_exist(user):
     url = f"https://{args.server}.jfrog.io/artifactory/api/security/users/{user}"
     headers = CaseInsensitiveDict()
@@ -96,22 +104,17 @@ def check_admin_or_temp_user_for_token():
         main_token = get_admin_token()
     else:
         main_token = get_temp_token()
-
     return main_token
 
 
 def api_request(api, token, state, content_type):
     url = f"https://{args.server}.jfrog.io/artifactory/{api}"
     headers = CaseInsensitiveDict()
-
     print(state)
-
     if token == 'token':
         headers["Authorization"] = 'Bearer ' + check_admin_or_temp_user_for_token()
-
     if content_type == 'content_type':
         headers["Content-Type"] = "application/json"
-
     if state == "GET":
         response = requests.get(url, headers=headers)
     elif state == "POST":
@@ -127,12 +130,7 @@ def api_request(api, token, state, content_type):
     else:
         print("api=[%s] is not supported" % api)
         return False
-
-    #response = requests.get(url, headers=headers)
     return response
-
-
-
 
 
 parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
@@ -146,29 +144,15 @@ parser.add_argument('--createuser', '-cu',  type=str, help="Enter a new user nam
 parser.add_argument('--deleteuser', '-du',  type=str, help="Enter a user name to delete")
 parser.add_argument('--storageinfo', '-si', action='store_true', help="Get Storage Summary Info")
 
-
 args = parser.parse_args()
 
-
-#X_JFrog_Token = generate_token(args.server, args.password)
-
-
-
-# Token
-#if args.server != None: # and validate_user_details() :
-    #print(args.server)
-    #print(validate_user_details())
-    #print(api_request('api/security/apiKey', 'token', 'GET', None).status_code)
-    #revoke_token(X_JFrog_Token)
-
-
-# manage the admin token, every run make a new one and revoke in the end
 file = open("keys.txt", "r+")
 file_len = file.read()
+
+
 if os.stat("keys.txt").st_size == 0:  # There isn't a admin token
     file.write(generate_token('admin'))
     admin_token_flag = True
-
 file.close()
 
 X_JFrog_Token = get_admin_token()
@@ -176,31 +160,27 @@ temp_JFrog_Token = ''
 admin_token_flag = False
 
 # make an health check - ping
-if args.ping and check_if_user_exist(args.user):
+if args.ping and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
     resp2 = api_request('api/system/ping', None, 'GET', None).status_code
     if resp2 == 200:
         print("OK")
     else:
         print("BAD")
 
-
 # return the artifactory version if flag is true
-if args.version and check_if_user_exist(args.user):
+if args.version and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
     resp3 = (api_request('api/system/version', 'token', 'GET', None))
     print(resp3.json()["version"])
 
-
 # create a new user
-if args.createuser is not None and check_if_user_exist(args.user):
+if args.createuser is not None and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
     data_set = {}
     data_set['email'] = input("Enter an email ").lower().strip()
     data_set['password'] = input("Enter a password ").strip()
     data_set['admin'] = "false"
     json_dump = json.dumps(data_set)
     print(json_dump)
-
     if not check_if_user_exist(args.createuser):
-        #admin_token = generate_token(args.user)
         resp4 = api_request(f'api/security/users/{args.createuser}', 'token', 'PUT', 'content_type').status_code
         temp_JFrog_Token = generate_token(args.createuser)
         f = open("tempToken.txt", "a")
@@ -208,7 +188,8 @@ if args.createuser is not None and check_if_user_exist(args.user):
         f.truncate()
         f.write(temp_JFrog_Token)
         f.close
-        if resp4 == 200:
+
+        if resp4 == 200 or resp4 == 201:
             print(f"User {args.createuser} created. ")
         elif resp4 == 401:
             print("401")
@@ -216,16 +197,15 @@ if args.createuser is not None and check_if_user_exist(args.user):
         print("The user already exists. doing nothing.")
 
 # Delete a user
-if args.deleteuser is not None and check_if_user_exist(args.user):
+if args.deleteuser is not None and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
     if check_if_user_exist(args.deleteuser):
         resp5 = api_request(f'api/security/users/{args.deleteuser}', 'token', 'DELETE', None).status_code
         print(f"User {args.deleteuser} removed. ")
     else:
         print("The user does not exist. Doing nothing.")
 
-
 # Get Storage Summary Info
-if args.storageinfo and check_if_user_exist(args.user):
+if args.storageinfo and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
     resp6 = (api_request('api/storageinfo', 'token', 'GET', None))
     print(resp6.json())
 
@@ -233,6 +213,3 @@ if args.storageinfo and check_if_user_exist(args.user):
 if admin_token_flag:
     token_to_revoke = get_token_id()
     revoke_token(token_to_revoke)
-
-
-
