@@ -56,17 +56,17 @@ def revoke_token(token_id):
     print("Token has been deleted!")
 
 
-def validate_user_password(user, password):
+def validate_user_details(user, password):
     url = "https://amitmichaely.jfrog.io/artifactory/api/system/ping"
     headers = CaseInsensitiveDict()
     headers["Authorization"] = "Basic {}".format(b64encode(bytes(f"{user}:{password}", "utf-8")).decode("ascii"))
     resp = requests.get(url, headers=headers)
 
     if resp.status_code == 200:
-        print("Password correct... ")
+        print("Details correct... ")
         return True
     else:
-        print("Password incorrect... ")
+        print("Details incorrect... ")
         return False
 
 
@@ -140,7 +140,7 @@ temp_JFrog_Token = ''
 admin_token_flag = False
 
 # make an health check - ping
-if args.ping and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
+if args.ping and validate_user_details(args.user, args.password):
     resp2 = api_request('api/system/ping', None, 'GET', None).status_code
     if resp2 == 200:
         print("OK")
@@ -148,12 +148,12 @@ if args.ping and check_if_user_exist(args.user) and validate_user_password(args.
         print("BAD")
 
 # return the artifactory version if flag is true
-if args.version and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
+if args.version and validate_user_details(args.user, args.password):
     resp3 = (api_request('api/system/version', 'token', 'GET', None))
     print(resp3.json()["version"])
 
 # create a new user
-if args.createuser is not None and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
+if args.createuser is not None and validate_user_details(args.user, args.password):
     data_set = {}
     data_set['email'] = input("Enter an email ").lower().strip()
     data_set['password'] = input("Enter a password ").strip()
@@ -177,7 +177,7 @@ if args.createuser is not None and check_if_user_exist(args.user) and validate_u
         print("The user already exists. doing nothing.")
 
 # Delete a user
-if args.deleteuser is not None and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
+if args.deleteuser is not None and validate_user_details(args.user, args.password):
     if check_if_user_exist(args.deleteuser):
         resp5 = api_request(f'api/security/users/{args.deleteuser}', 'token', 'DELETE', None).status_code
         print(f"User {args.deleteuser} removed. ")
@@ -185,7 +185,7 @@ if args.deleteuser is not None and check_if_user_exist(args.user) and validate_u
         print("The user does not exist. Doing nothing.")
 
 # Get Storage Summary Info
-if args.storageinfo and check_if_user_exist(args.user) and validate_user_password(args.user, args.password):
+if args.storageinfo and validate_user_details(args.user, args.password):
     resp6 = (api_request('api/storageinfo', 'token', 'GET', None))
     print(resp6.json())
 
@@ -193,3 +193,4 @@ if args.storageinfo and check_if_user_exist(args.user) and validate_user_passwor
 if admin_token_flag:
     token_to_revoke = get_token_id()
     revoke_token(token_to_revoke)
+    print("Token has been deleted")
