@@ -10,7 +10,7 @@ import sys
 
 
 def get_admin_token():
-    f_admin = open("keys.txt", "r")
+    f_admin = open("adminToken.txt", "r")
     lines = f_admin.readlines()
     admin_token = lines[0].strip()
     f_admin.close()
@@ -126,11 +126,11 @@ parser.add_argument('--storageinfo', '-si', action='store_true', help="Get Stora
 
 args = parser.parse_args()
 
-file = open("keys.txt", "r+")
+file = open("adminToken.txt", "r+")
 file_len = file.read()
 
 
-if os.stat("keys.txt").st_size == 0:  # There isn't a admin token
+if os.stat("adminToken.txt").st_size == 0:  # There isn't a admin token
     file.write(generate_token('admin'))
     admin_token_flag = True
 file.close()
