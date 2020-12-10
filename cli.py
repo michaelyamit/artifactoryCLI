@@ -150,17 +150,18 @@ if args.ping and validate_user_details(args.user, args.password):
 # return the artifactory version if flag is true
 if args.version and validate_user_details(args.user, args.password):
     resp3 = (api_request('api/system/version', 'token', 'GET', None))
-    print(resp3.json()["version"])
+    print("Artifactory version - " + resp3.json()["version"])
+
 
 # create a new user
 if args.createuser is not None and validate_user_details(args.user, args.password):
-    data_set = {}
-    data_set['email'] = input("Enter an email ").lower().strip()
-    data_set['password'] = input("Enter a password ").strip()
-    #data_set['admin'] = "false"
-    json_dump = json.dumps(data_set)
-    print(json_dump)
     if not check_if_user_exist(args.createuser):
+        data_set = {}
+        data_set['email'] = input("Enter an email ").lower().strip()
+        data_set['password'] = input("Enter a password ").strip()
+        #data_set['admin'] = "false"
+        json_dump = json.dumps(data_set)
+        print(json_dump)
         resp4 = api_request(f'api/security/users/{args.createuser}', 'token', 'PUT', 'content_type').status_code
         temp_JFrog_Token = generate_token(args.createuser)
         f = open("tempToken.txt", "a")
