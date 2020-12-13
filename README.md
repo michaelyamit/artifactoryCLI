@@ -16,7 +16,7 @@ Clone repository: ``git https://github.com/michaelyamit/artifactoryCLI.git``
 Install project dependencies
 ``pip install -r requirements.txt``
 
-Lunch CLI functions
+Launch CLI functions
 ``artcli --help``
 
 Make sure
