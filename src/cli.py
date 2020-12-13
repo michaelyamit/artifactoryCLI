@@ -1,12 +1,13 @@
 #!/Users/amitm/sample/venv-pythonProject/bin/python3.7
 from base64 import b64encode
-
 import requests
 from argparse import ArgumentParser
 from requests.structures import CaseInsensitiveDict
 import json
 import os
 import sys
+
+
 def main():
     def get_admin_token():
         f_admin = open(f"{file_path}adminToken.txt", "r")
@@ -15,14 +16,12 @@ def main():
         f_admin.close()
         return admin_token
 
-
     def get_temp_token():
         f_temp = open(f"{file_path}tempToken.txt", "r")
         lines = f_temp.readlines()
         temp_token = lines[0].strip()
         f_temp.close()
         return temp_token
-
 
     def generate_token(username):
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/token"
@@ -35,7 +34,6 @@ def main():
         print("Token generated.")
         return temp_token
 
-
     def get_token_id():
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/token"
         headers = CaseInsensitiveDict()
@@ -43,7 +41,6 @@ def main():
         resp = requests.get(url, headers=headers)
         temp_token = (resp.json()["tokens"][0]["token_id"])
         return temp_token
-
 
     def revoke_token(token_id):
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/token/revoke"
@@ -54,20 +51,17 @@ def main():
         resp = requests.post(url, headers=headers, data=data)
         print("Token has been deleted!")
 
-
     def validate_user_details(user, password):
         url = f"https://{args.server}.jfrog.io/artifactory/api/system/ping"
         headers = CaseInsensitiveDict()
         headers["Authorization"] = "Basic {}".format(b64encode(bytes(f"{user}:{password}", "utf-8")).decode("ascii"))
         resp = requests.get(url, headers=headers)
-
         if resp.status_code == 200:
             print("Details correct... ")
             return True
         else:
             print("Details incorrect... ")
             return False
-
 
     def check_if_user_exist(user):
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/users/{user}"
@@ -81,14 +75,12 @@ def main():
             print("User doesn't exists...")
             return False
 
-
     def check_admin_or_temp_user_for_token():
         if args.user == 'admin':
             main_token = get_admin_token()
         else:
             main_token = get_temp_token()
         return main_token
-
 
     def api_request(api, token, state, content_type):
         url = f"https://{args.server}.jfrog.io/artifactory/{api}"
@@ -97,7 +89,6 @@ def main():
             headers["Authorization"] = 'Bearer ' + check_admin_or_temp_user_for_token()
         if content_type == 'content_type':
             headers["Content-Type"] = "application/json"
-
         if state == "GET":
             response = requests.get(url, headers=headers)
         elif state == "POST":
@@ -129,12 +120,11 @@ def main():
     file = open(f"{file_path}adminToken.txt", "r+")
     file_len = file.read()
 
-
     if os.stat(f"{file_path}adminToken.txt").st_size == 0:  # There isn't a admin token
         file.write(generate_token('admin'))
         admin_token_flag = True
-    file.close()
 
+    file.close()
     X_JFrog_Token = get_admin_token()
     temp_JFrog_Token = ''
     admin_token_flag = False
@@ -152,7 +142,6 @@ def main():
         resp3 = (api_request('api/system/version', 'token', 'GET', None))
         print("Artifactory version - " + resp3.json()["version"])
 
-
     # create a new user
     if args.createuser is not None and validate_user_details(args.user, args.password):
         if not check_if_user_exist(args.createuser):
@@ -169,7 +158,6 @@ def main():
             f.truncate()
             f.write(temp_JFrog_Token)
             f.close
-
             if resp4 == 200 or resp4 == 201:
                 print(f"User {args.createuser} created. ")
             elif resp4 == 401:
