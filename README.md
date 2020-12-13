@@ -8,10 +8,14 @@ Basic functions for using JFrog Artifactory
 Preparing the Development
 -------------------------
 Ensure python and pip are installed. 
+
 Clone repository: ``git https://github.com/michaelyamit/artifactoryCLI.git``
+
 ``cd`` into this repository.
+
 Install project dependencies
 ``pip install -r requirements.txt``
+
 Lunch CLI functions
 ``artcli --help``
 
