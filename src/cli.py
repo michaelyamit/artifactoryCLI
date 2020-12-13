@@ -9,7 +9,7 @@ import os
 import sys
 def main():
     def get_admin_token():
-        f_admin = open("/Users/amitm/sample/venv-pythonProject/artcli/src/adminToken.txt", "r")
+        f_admin = open(f"{file_path}adminToken.txt", "r")
         lines = f_admin.readlines()
         admin_token = lines[0].strip()
         f_admin.close()
@@ -17,7 +17,7 @@ def main():
 
 
     def get_temp_token():
-        f_temp = open("/Users/amitm/sample/venv-pythonProject/artcli/src/tempToken.txt", "r")
+        f_temp = open(f"{file_path}tempToken.txt", "r")
         lines = f_temp.readlines()
         temp_token = lines[0].strip()
         f_temp.close()
@@ -111,6 +111,7 @@ def main():
             return False
         return response
 
+    file_path = "/Users/amitm/sample/venv-pythonProject/artcli/src/"
 
     parser = ArgumentParser(description='Manage an Artifactory SaaS instance')
 
@@ -125,11 +126,11 @@ def main():
 
     args = parser.parse_args()
 
-    file = open("/Users/amitm/sample/venv-pythonProject/artcli/src/adminToken.txt", "r+")
+    file = open(f"{file_path}adminToken.txt", "r+")
     file_len = file.read()
 
 
-    if os.stat("/Users/amitm/sample/venv-pythonProject/artcli/src/adminToken.txt").st_size == 0:  # There isn't a admin token
+    if os.stat(f"{file_path}adminToken.txt").st_size == 0:  # There isn't a admin token
         file.write(generate_token('admin'))
         admin_token_flag = True
     file.close()
@@ -180,6 +181,8 @@ def main():
     if args.deleteuser is not None and validate_user_details(args.user, args.password):
         if check_if_user_exist(args.deleteuser):
             resp5 = api_request(f'api/security/users/{args.deleteuser}', 'token', 'DELETE', None).status_code
+            token_to_revoke = get_token_id()
+            revoke_token(token_to_revoke)
             print(f"User {args.deleteuser} removed. ")
         else:
             print("The user does not exist. Doing nothing.")
