@@ -19,6 +19,8 @@ Install project dependencies
 Launch CLI functions
 ``artcli --help``
 
+Change your ``path`` and ``servername``
+
 Make sure
 ---------
 1. tempToken.txt and adminToken.txt are empty before run.

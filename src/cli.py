@@ -27,7 +27,7 @@ def main():
     def generate_token(username):
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/token"
         headers = CaseInsensitiveDict()
-        headers["Authorization"] = "Basic YWRtaW46UGFzc3dvcmQ="
+        headers["Authorization"] = "****"
         headers["Content-Type"] = "application/x-www-form-urlencoded"
         data = f"username={username}&expires_in=0&scope=member-of-groups:\"readers\""
         resp = requests.post(url, headers=headers, data=data)
@@ -39,7 +39,7 @@ def main():
     def get_token_id():
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/token"
         headers = CaseInsensitiveDict()
-        headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
+        headers["Authorization"] = "****"
         resp = requests.get(url, headers=headers)
         temp_token = (resp.json()["tokens"][0]["token_id"])
         return temp_token
@@ -48,7 +48,7 @@ def main():
     def revoke_token(token_id):
         url = f"https://{args.server}.jfrog.io/artifactory/api/security/token/revoke"
         headers = CaseInsensitiveDict()
-        headers["Authorization"] = "Basic YW1pdG1AamZyb2cuY29tOkFtaXQxNTEwIQ=="
+        headers["Authorization"] = "****"
         headers["Content-Type"] = "application/x-www-form-urlencoded"
         data = f"username={args.server}&expires_in=0&scope=member-of-groups:\"readers\"&token_id={token_id}"
         resp = requests.post(url, headers=headers, data=data)
