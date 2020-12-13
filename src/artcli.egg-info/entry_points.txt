@@ -1,0 +1,3 @@
+[console_scripts]
+artcli = cli:main
+

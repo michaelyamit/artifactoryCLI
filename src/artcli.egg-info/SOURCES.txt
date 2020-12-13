@@ -1,0 +1,11 @@
+MANIFEST.in
+setup.py
+src/__init__.py
+src/adminToken.txt
+src/cli.py
+src/tempToken.txt
+src/artcli.egg-info/PKG-INFO
+src/artcli.egg-info/SOURCES.txt
+src/artcli.egg-info/dependency_links.txt
+src/artcli.egg-info/entry_points.txt
+src/artcli.egg-info/top_level.txt
