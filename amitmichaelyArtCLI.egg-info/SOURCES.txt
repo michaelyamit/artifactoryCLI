@@ -1,9 +1,0 @@
-MANIFEST.in
-adminToken.txt
-cli.py
-setup.py
-tempToken.txt
-amitmichaelyArtCLI.egg-info/PKG-INFO
-amitmichaelyArtCLI.egg-info/SOURCES.txt
-amitmichaelyArtCLI.egg-info/dependency_links.txt
-amitmichaelyArtCLI.egg-info/top_level.txt
